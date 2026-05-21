@@ -1,0 +1,16 @@
+# Contexto del Proyecto: NoteFlow (Nivel Principiante)
+
+## Perfil del Desarrollador
+- Soy principiante en React Native y desarrollo móvil.
+- Prefiero código fácil de leer, bien comentado y estructurado de forma sencilla.
+
+## Tecnologías y Stack
+- React Native con Expo (Flujo Gestionado / Managed Workflow).
+- Lenguaje: JavaScript moderno básico (ES6). NO usar TypeScript.
+- Estilo visual: StyleSheet estándar de React Native (el que viene por defecto). NO usar librerías de estilos externas por ahora.
+
+## Reglas de Oro para la IA
+1. **Simplicidad ante todo:** No crees arquitecturas complejas, carpetas infinitas ni uses patrones de diseño avanzados (como Redux o contextos avanzados) a menos que te lo pida explícitamente.
+2. **Archivos únicos si es posible:** Prefiero maquetar la lógica y la vista en el mismo archivo (como `App.js`) antes de fragmentar el código en 10 componentes pequeños.
+3. **Explicaciones paso a paso:** Cuando me des un fragmento de código, explícame brevemente qué hace cada función con comentarios sencillos dentro del propio código.
+4. **Evita dependencias innecesarias:** Intenta solucionar los problemas con los componentes nativos de React Native (`View`, `Text`, `TextInput`, `TouchableOpacity`, `FlatList`).
