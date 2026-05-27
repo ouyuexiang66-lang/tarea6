@@ -13,3 +13,7 @@ Metro es el empaquetador (bundler) oficial de JavaScript desarrollado por Meta p
 *   **Expo Go:** Es una app precompilada que ya tiene dentro un conjunto fijo de librerías nativas comunes. Es perfecta para aprender y prototipar rápido escaneando un QR.
 *   **El problema:** Si tu proyecto real necesita una funcionalidad nativa personalizada que no viene dentro de Expo Go (como un sistema de pagos específico, biometría avanzada o configurar notificaciones push personalizadas con un servidor externo), Expo Go **no puede ejecutarla** porque no permite añadir código nativo de Java/Kotlin personalizado de terceros.
 *   **La solución en producción:** Se usan los *Development Builds*. Con la herramienta EAS Build de Expo, generas tu propio "Expo Go" personalizado: un archivo `.apk` (Android) o `.ipa` (iOS) exclusivo de tu proyecto que sí incluye las librerías nativas exactas que necesitas.
+
+
+Sistemas de diseño
+React Native Paper : porque da botones, tarjetas e inputs listos para usar basados en Material Design (el estándar de Android). Es robusto, no se rompe y configurar los modos claro y oscuro requiere poquísimas líneas de código.
