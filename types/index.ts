@@ -66,3 +66,30 @@ export function isChecklistNote(note: AnyNote): note is ChecklistNote {
 export function isIdeaNote(note: AnyNote): note is IdeaNote {
   return 'tags' in note;
 }
+
+
+import { z } from 'zod';
+
+// --- ESQUEMAS DE VALIDACIÓN ZOD ---
+
+export const noteSchema = z.object({
+  title: z.string().min(3, 'El título debe tener al menos 3 caracteres'),
+  content: z.string().min(1, 'El contenido no puede estar vacío'),
+});
+
+export const checklistSchema = z.object({
+  title: z.string().min(3, 'El título debe tener al menos 3 caracteres'),
+  items: z.array(
+    z.object({
+      id: z.string(),
+      text: z.string().min(1, 'La tarea no puede estar vacía'),
+      isCompleted: z.boolean(), // <-- CORREGIDO: quitada la 'z.' extra
+    })
+  ).min(1, 'Debes añadir al menos una tarea a la lista'),
+});
+
+export const ideaSchema = z.object({
+  title: z.string().min(3, 'El título debe tener al menos 3 caracteres'),
+  color: z.string().startsWith('#', 'Debe ser un color hexadecimal válido'),
+  tags: z.array(z.string()).min(1, 'Añade al menos una etiqueta para clasificar tu idea'),
+});
