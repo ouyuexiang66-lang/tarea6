@@ -1,28 +1,96 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics';
 import { Note, ChecklistNote, IdeaNote } from '../types';
 
-interface NotesState {
+interface NoteStore {
   notes: Note[];
   checklists: ChecklistNote[];
   ideas: IdeaNote[];
+  _hasHydrated: boolean;
+  setHasHydrated: (state: boolean) => void;
+  
+  // Acciones de inserción (Faltaban addChecklist y addIdea en la interfaz)
   addNote: (note: Note) => void;
   addChecklist: (checklist: ChecklistNote) => void;
   addIdea: (idea: IdeaNote) => void;
+  
+  // Acciones de borrado y archivado
+  archiveNote: (id: string) => void;
+  deleteNotePermanently: (id: string) => void;
+  
+  // Gestión interna de estados de tareas
+  toggleChecklistItem: (checklistId: string, itemId: string) => void;
 }
 
-export const useNotesStore = create<NotesState>((set) => ({
-  // Estados iniciales con arrays vacíos
-  notes: [],
-  checklists: [],
-  ideas: [],
+export const useNotesStore = create<NoteStore>()(
+  persist(
+    (set) => ({
+      notes: [],
+      checklists: [],
+      ideas: [],
+      _hasHydrated: false,
 
-  // Acciones de inserción
-  addNote: (nuevaNota) => 
-    set((state) => ({ notes: [...state.notes, nuevaNota] })),
+      setHasHydrated: (state) => set({ _hasHydrated: state }),
 
-  addChecklist: (nuevoChecklist) => 
-    set((state) => ({ checklists: [...state.checklists, nuevoChecklist] })),
+      // --- INSERCIONES ---
+      addNote: (note) => set((state) => ({ 
+        notes: [note, ...state.notes] 
+      })),
 
-  addIdea: (nuevaIdea) => 
-    set((state) => ({ ideas: [...state.ideas, nuevaIdea] })),
-}));
+      addChecklist: (checklist) => set((state) => ({ 
+        checklists: [checklist, ...state.checklists] 
+      })),
+
+      addIdea: (idea) => set((state) => ({ 
+        ideas: [idea, ...state.ideas] 
+      })),
+
+      // --- ARCHIVADO Y BORRADO ---
+      archiveNote: (id) => set((state) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        return {
+          notes: state.notes.map(n => n.id === id ? { ...n, archived: true } : n)
+        };
+      }),
+
+      deleteNotePermanently: (id) => set((state) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        return {
+          notes: state.notes.filter(n => n.id !== id)
+        };
+      }),
+
+      // --- LOGICA DE CHECKLISTS + HAPTICS NATIVOS ---
+      toggleChecklistItem: (checklistId, itemId) => set((state) => {
+        const updatedChecklists = state.checklists.map((chk) => {
+          if (chk.id !== checklistId) return chk;
+
+          const updatedItems = chk.items.map(item => 
+            item.id === itemId ? { ...item, isCompleted: !item.isCompleted } : item
+          );
+
+          // Si el usuario completa el 100% de la lista, doble vibración (Success)
+          const todosCompletados = updatedItems.every(item => item.isCompleted);
+          if (todosCompletados) {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          } else {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          }
+
+          return { ...chk, items: updatedItems, updatedAt: new Date() };
+        });
+
+        return { checklists: updatedChecklists };
+      }),
+    }),
+    {
+      name: 'noteflow-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+      onRehydrateStorage: () => (state) => {
+        if (state) state.setHasHydrated(true);
+      },
+    }
+  )
+);

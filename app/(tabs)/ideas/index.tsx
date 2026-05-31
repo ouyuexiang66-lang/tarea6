@@ -21,7 +21,7 @@ export default function PantallaIdeas() {
         <Text style={[styles.titulo, { color: theme.colors.text }]}>Banco de Ideas</Text>
       </View>
 
-      {/* 2. TIPADO EXPLÍCITO: Añadimos el tipo : { item: IdeaNote } para fulminar el error de 'any' */}
+      {/* 2. TIPADO EXPLÍCITO utilizando la constante puenteada */}
       <FlexibleFlashList
         data={ideas}
         renderItem={({ item }: { item: IdeaNote }) => <IdeaCard item={item} />}

@@ -14,6 +14,7 @@ export default function PantallaChecklists() {
 
   // 1. Declaramos la constante puente para saltar las restricciones de la librería
   const FlexibleFlashList = FlashList as any;
+  
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>

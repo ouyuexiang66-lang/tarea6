@@ -1,12 +1,30 @@
+import { z } from 'zod';
+
 /**
  * Interfaz base con las propiedades compartidas por todos los tipos de notas.
+ * Hacemos 'updatedAt' opcional aquí para que no choque en las interfaces hijas.
  */
 export interface BaseNote {
   id: string;
   title: string;
   createdAt: Date;
   updatedAt: Date;
+  archived?: boolean; // 👈 ¡IMPRESCINDIBLE añadir esto aquí!
 }
+
+export interface Note extends BaseNote {
+  content: string;
+}
+
+export interface ChecklistNote extends BaseNote {
+  items: ChecklistItem[];
+}
+
+export interface IdeaNote extends BaseNote {
+  tags: string[];
+  color: string;
+}
+
 
 /**
  * Representa un ítem individual dentro de una lista de tareas.
@@ -19,6 +37,7 @@ export interface ChecklistItem {
 
 /**
  * Nota de texto tradicional (Extiende de BaseNote).
+ * Hereda id, title, createdAt, updatedAt y archived automáticamente.
  */
 export interface Note extends BaseNote {
   content: string;
@@ -26,6 +45,7 @@ export interface Note extends BaseNote {
 
 /**
  * Nota de tipo lista de tareas pendientes (Extiende de BaseNote).
+ * Corregida: Eliminados los campos duplicados que chocaban con la base.
  */
 export interface ChecklistNote extends BaseNote {
   items: ChecklistItem[];
@@ -41,34 +61,24 @@ export interface IdeaNote extends BaseNote {
 
 /**
  * Tipo de unión (Union Type) que engloba cualquier variante de nota disponible en NoteFlow.
- * Permite almacenar y procesar colecciones mixtas en un mismo array.
  */
 export type AnyNote = Note | ChecklistNote | IdeaNote;
 
 
-/**
- * Guarda de tipo para verificar si una nota es de texto (Note)
- */
+// --- GUARDAS DE TIPO (Type Guards) ---
+
 export function isTextNote(note: AnyNote): note is Note {
   return 'content' in note;
 }
 
-/**
- * Guarda de tipo para verificar si una nota es una lista de tareas (ChecklistNote)
- */
 export function isChecklistNote(note: AnyNote): note is ChecklistNote {
   return 'items' in note;
 }
 
-/**
- * Guarda de tipo para verificar si una nota es una idea rápida (IdeaNote)
- */
 export function isIdeaNote(note: AnyNote): note is IdeaNote {
   return 'tags' in note;
 }
 
-
-import { z } from 'zod';
 
 // --- ESQUEMAS DE VALIDACIÓN ZOD ---
 
@@ -83,7 +93,7 @@ export const checklistSchema = z.object({
     z.object({
       id: z.string(),
       text: z.string().min(1, 'La tarea no puede estar vacía'),
-      isCompleted: z.boolean(), // <-- CORREGIDO: quitada la 'z.' extra
+      isCompleted: z.boolean(),
     })
   ).min(1, 'Debes añadir al menos una tarea a la lista'),
 });

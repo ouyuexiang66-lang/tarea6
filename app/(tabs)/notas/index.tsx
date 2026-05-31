@@ -1,51 +1,99 @@
-import React from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
+import { useRouter } from 'expo-router';
+import Animated, { FadeInDown, FadeOutLeft } from 'react-native-reanimated';
 import { useNotesStore } from '../../../store/notestore';
-import { useAppTheme, DesignTokens } from '../../../constants/themes'; // Cambiado a 'theme'
-import NoteCard from '../../../components/items/NoteCard'; // Ruta a la nueva tarjeta interna
+import NoteCard from '../../../components/items/NoteCard';
+import { useAppTheme } from '../../../constants/themes';
 import { Note } from '../../../types';
 
 export default function PantallaNotas() {
   const theme = useAppTheme();
+  const router = useRouter();
   
-  // Conectamos con Zustand para obtener el array de notas en tiempo real
-  const notes = useNotesStore((state) => state.notes);
-  const FlexibleFlashList = FlashList as any;
+  // Extraemos y filtramos las notas activas
+  const notes = useNotesStore((state) => state.notes.filter(n => !n.archived));
+  const [search, setSearch] = useState('');
+
+  // Lógica de filtrado en tiempo real
+  const filteredNotes = notes.filter(note =>
+    note.title.toLowerCase().includes(search.toLowerCase()) ||
+    note.content.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Forzamos el tipado amplio sobre el componente para fulminar el error ts(2322)
+  const ComponenteLista = FlashList as any;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={styles.headerContainer}>
-        <Text style={[styles.titulo, { color: theme.colors.text }]}>Mis Notas</Text>
+      
+      {/* BUSCADOR GLOBAL */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={[styles.searchInput, { backgroundColor: theme.colors.surface, color: theme.colors.text }]}
+          placeholder="Buscar notas..."
+          placeholderTextColor="#A1A1AA"
+          value={search}
+          onChangeText={setSearch}
+        />
       </View>
 
-      {/* Lista de alto rendimiento */}
-    <FlexibleFlashList
-        data={notes}
-        renderItem={({ item }: { item: Note }) => <NoteCard item={item} />}
-        estimatedItemSize={110} 
+      {/* LISTA DINÁMICA UTILIZANDO EL COMPONENTE PARCHEADO */}
+      <ComponenteLista
+        data={filteredNotes}
+        estimatedItemSize={110}
         keyExtractor={(item: Note) => item.id}
-        contentContainerStyle={styles.listContent} 
+        contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={{ color: '#A1A1AA', fontSize: 16 }}>
+              {search ? 'No se encontraron coincidencias 🔍' : 'No hay notas activas disponibles 📝'}
+            </Text>
+          </View>
+        }
+        renderItem={({ item, index }: { item: Note; index: number }) => (
+          <Animated.View 
+            entering={FadeInDown.delay(index * 30).duration(300)}
+            exiting={FadeOutLeft.duration(200)}
+          >
+            <TouchableOpacity 
+              activeOpacity={0.7} 
+              onPress={() => router.push({ pathname: '/notas/[id]', params: { id: item.id } })}
+            >
+              <NoteCard item={item} />
+            </TouchableOpacity>
+          </Animated.View>
+        )}
       />
+
+      {/* BOTÓN FLOTANTE (FAB) */}
+      <TouchableOpacity 
+        style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+        onPress={() => router.push('/nueva-nota')}
+      >
+        <Text style={styles.fabTexto}>+</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    justifyContent: 'flex-start' 
+  container: { flex: 1 },
+  searchContainer: { padding: 12 },
+  searchInput: { 
+    height: 46, 
+    borderRadius: 8, 
+    paddingHorizontal: 16, 
+    fontSize: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  headerContainer: {
-    paddingHorizontal: DesignTokens.spacing.md,
-    paddingTop: DesignTokens.spacing.md,
-  },
-  titulo: { 
-    fontSize: DesignTokens.fontSize.header, 
-    fontWeight: 'bold', 
-    marginBottom: DesignTokens.spacing.md 
-  },
-  listContent: {
-    paddingBottom: DesignTokens.spacing.lg
-  }
+  listContent: { paddingBottom: 80, paddingHorizontal: 12 },
+  emptyContainer: { padding: 40, alignItems: 'center', justifyContent: 'center' },
+  fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', elevation: 5 },
+  fabTexto: { color: '#FFFFFF', fontSize: 28, fontWeight: 'bold' }
 });
