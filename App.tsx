@@ -1,25 +1,30 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, FlatList, SafeAreaView } from 'react-native';
+import { Note } from './types';
 
 export default function App() {
   const [nota, setNota] = useState('');
-  const [listaNotas, setListaNotas] = useState([]);
+  const [listaNotas, setListaNotas] = useState<Note[]>([]);
 
-  // Función para añadir una nota
+  // Función para añadir una nota cumpliendo la interfaz estricta
   const añadirNota = () => {
-    if (nota.trim() === '') return; // Si está vacío, no hace nada
-    
-    const nuevaNota = {
+    if (nota.trim() === '') return; 
+
+    const nuevaNota: Note = {
       id: Date.now().toString(),
-      texto: nota
+      title: nota.trim().substring(0, 20) + (nota.length > 20 ? '...' : ''), 
+      content: nota, 
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      archived: false
     };
 
     setListaNotas([...listaNotas, nuevaNota]);
-    setNota(''); // Limpiar el input
+    setNota(''); 
   };
 
-  // Función para borrar una nota
-  const borrarNota = (id) => {
+  // Función para borrar una nota tipando el ID de forma explícita
+  const borrarNota = (id: string) => {
     setListaNotas(listaNotas.filter(item => item.id !== id));
   };
 
@@ -40,13 +45,13 @@ export default function App() {
         </TouchableOpacity>
       </View>
 
-      {/* Lista de Notas */}
-      <FlatList 
+      {/* Lista de Notas Optimizada y Tipada */}
+      <FlatList
         data={listaNotas}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
+        keyExtractor={(item: Note) => item.id} 
+        renderItem={({ item }: { item: Note }) => ( 
           <View style={styles.tarjetaNota}>
-            <Text style={styles.textoNota}>{item.texto}</Text>
+            <Text style={styles.textoNota}>{item.content}</Text>
             <TouchableOpacity onPress={() => borrarNota(item.id)}>
               <Text style={styles.iconoBorrar}>❌</Text>
             </TouchableOpacity>
