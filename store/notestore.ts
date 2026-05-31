@@ -10,17 +10,11 @@ interface NoteStore {
   ideas: IdeaNote[];
   _hasHydrated: boolean;
   setHasHydrated: (state: boolean) => void;
-  
-  // Acciones de inserción (Faltaban addChecklist y addIdea en la interfaz)
   addNote: (note: Note) => void;
-  addChecklist: (checklist: ChecklistNote) => void;
-  addIdea: (idea: IdeaNote) => void;
-  
-  // Acciones de borrado y archivado
+  addChecklist: (checklist: ChecklistNote) => void; // 👈 ¡AÑADIR ESTA!
+  addIdea: (idea: IdeaNote) => void;               // 👈 ¡AÑADIR ESTA!
   archiveNote: (id: string) => void;
   deleteNotePermanently: (id: string) => void;
-  
-  // Gestión interna de estados de tareas
   toggleChecklistItem: (checklistId: string, itemId: string) => void;
 }
 
@@ -61,6 +55,7 @@ export const useNotesStore = create<NoteStore>()(
           notes: state.notes.filter(n => n.id !== id)
         };
       }),
+      
 
       // --- LOGICA DE CHECKLISTS + HAPTICS NATIVOS ---
       toggleChecklistItem: (checklistId, itemId) => set((state) => {
